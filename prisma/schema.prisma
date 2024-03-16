@@ -1,0 +1,19 @@
+generator kysely {
+  provider = "prisma-kysely"
+  output   = "../app/services"
+  fileName = "types.ts"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String?
+  publishedAt Boolean  @default(false) @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+}
