@@ -6,7 +6,7 @@ generator kysely {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:../data/dev.db"
 }
 
 model Post {
@@ -16,4 +16,8 @@ model Post {
   publishedAt Boolean  @default(false) @map("published_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("posts")
+  @@index([publishedAt])
+  @@index([createdAt])
 }
