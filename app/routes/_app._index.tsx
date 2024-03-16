@@ -17,7 +17,12 @@ export const loader = async ({
   context,
 }: LoaderFunctionArgs) => {
   const db = createDb(context.cloudflare.env)
-  const posts = await db.selectFrom('posts').selectAll().limit(10).execute()
+  const posts = await db
+    .selectFrom('posts')
+    .selectAll()
+    .orderBy('published_at', 'desc')
+    .limit(10)
+    .execute()
   return json({ posts })
 }
 
