@@ -3,19 +3,16 @@ import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from '@remix-run/cloudflare'
-import { Form, Link, redirect, useLoaderData } from '@remix-run/react'
+import { Form, Link, useLoaderData } from '@remix-run/react'
 import { PlusIcon } from 'lucide-react'
 import { $path } from 'remix-routes'
+import { redirectWithSuccess } from 'remix-toast'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
 import { Button, Card, CardContent, CardHeader } from '~/components/ui'
 import { dayjs } from '~/libs/dayjs'
 import { createDb, type Clean, type Post } from '~/services/db.server'
 
-export const loader = async ({
-  request,
-  params,
-  context,
-}: LoaderFunctionArgs) => {
+export const loader = async ({ context }: LoaderFunctionArgs) => {
   const db = createDb(context.cloudflare.env)
   const posts = await db
     .selectFrom('posts')
@@ -33,7 +30,6 @@ export const action = async ({ context }: ActionFunctionArgs) => {
     .values({
       title: 'New Post',
       content: 'New Post Content',
-      published_at: dayjs().toISOString(),
       created_at: dayjs().toISOString(),
       updated_at: dayjs().toISOString(),
     })
@@ -41,10 +37,13 @@ export const action = async ({ context }: ActionFunctionArgs) => {
     .executeTakeFirst()
   if (!newPost) throw new Error('Failed to create a new post')
 
-  return redirect($path('/posts/:id', { id: newPost.id }))
+  return redirectWithSuccess($path('/posts/:id', { id: newPost.id }), {
+    message: 'New post created',
+    description: 'You can edit the post now.',
+  })
 }
 
-const PostCard = ({ handle, post }: { handle: string; post: Clean<Post> }) => {
+const PostCard = ({ post }: { handle: string; post: Clean<Post> }) => {
   return (
     <Card
       key={String(post.id)}

@@ -7,13 +7,13 @@ import {
 import { parseWithZod } from '@conform-to/zod'
 import {
   json,
-  redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from '@remix-run/cloudflare'
 import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { ArrowLeftIcon } from 'lucide-react'
 import { $path } from 'remix-routes'
+import { redirectWithSuccess } from 'remix-toast'
 import { z } from 'zod'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
 import { Button, Input, Label, Textarea } from '~/components/ui'
@@ -28,11 +28,7 @@ const schema = z.object({
     .max(14000, '最大文字数に達しました 14000 / 14000 字'),
 })
 
-export const loader = async ({
-  request,
-  params,
-  context,
-}: LoaderFunctionArgs) => {
+export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { id } = params
   if (!id) throw json({ message: 'Not found', status: 404 })
 
@@ -63,7 +59,7 @@ export const action = async ({
 
   // 更新
   const db = createDb(context.cloudflare.env)
-  await db
+  const post = await db
     .updateTable('posts')
     .where('id', '==', id)
     .set({
@@ -71,9 +67,13 @@ export const action = async ({
       content: submission.value.content,
       published_at: new Date().toISOString(),
     })
+    .returning('title')
     .executeTakeFirstOrThrow()
 
-  return redirect($path('/posts/:id', { id }))
+  return redirectWithSuccess($path('/posts/:id', { id }), {
+    message: '記事を更新しました',
+    description: post.title,
+  })
 }
 
 export default function PostEditPage() {

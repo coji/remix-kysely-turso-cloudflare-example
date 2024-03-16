@@ -7,11 +7,7 @@ import { Button } from '~/components/ui'
 import { dayjs } from '~/libs/dayjs'
 import { createDb } from '~/services/db.server'
 
-export const loader = async ({
-  request,
-  params,
-  context,
-}: LoaderFunctionArgs) => {
+export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { id } = params
   if (!id) throw new Error('Not found')
 
