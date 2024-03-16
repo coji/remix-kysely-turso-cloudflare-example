@@ -37,7 +37,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     } else if (toastData.type === 'error') {
       toastFn = toast.error
     }
-    toastFn(toastData.message, { description: toastData.description })
+    const id = toastFn(toastData.message, {
+      description: toastData.description,
+    })
+    return () => {
+      toast.dismiss(id)
+    }
   }, [toastData])
 
   return (

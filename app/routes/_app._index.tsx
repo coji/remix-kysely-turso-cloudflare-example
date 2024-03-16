@@ -1,30 +1,39 @@
-import {
-  json,
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs,
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
 } from '@remix-run/cloudflare'
 import { Form, Link, useLoaderData } from '@remix-run/react'
 import { PlusIcon } from 'lucide-react'
 import { $path } from 'remix-routes'
-import { redirectWithSuccess } from 'remix-toast'
+import { jsonWithSuccess, redirectWithSuccess } from 'remix-toast'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
+import { DurationBar } from '~/components/DurationBar'
 import { Button, Card, CardContent, CardHeader } from '~/components/ui'
 import { dayjs } from '~/libs/dayjs'
 import { createDb, type Clean, type Post } from '~/services/db.server'
 
 export const loader = async ({ context }: LoaderFunctionArgs) => {
   const db = createDb(context.cloudflare.env)
+  const start = Date.now()
   const posts = await db
     .selectFrom('posts')
     .selectAll()
     .orderBy('published_at', 'desc')
-    .limit(10)
+    .limit(100)
     .execute()
-  return json({ posts })
+  const duration = Date.now() - start
+  return jsonWithSuccess(
+    { posts, duration },
+    {
+      message: 'Posts loaded',
+      description: `SELECT: ${posts.length} records in ${duration}ms`,
+    },
+  )
 }
 
 export const action = async ({ context }: ActionFunctionArgs) => {
   const db = createDb(context.cloudflare.env)
+  const start = Date.now()
   const newPost = await db
     .insertInto('posts')
     .values({
@@ -35,11 +44,12 @@ export const action = async ({ context }: ActionFunctionArgs) => {
     })
     .returning('id')
     .executeTakeFirst()
+  const duration = Date.now() - start
   if (!newPost) throw new Error('Failed to create a new post')
 
   return redirectWithSuccess($path('/posts/:id', { id: newPost.id }), {
     message: 'New post created',
-    description: 'You can edit the post now.',
+    description: `INSERT: ${duration}ms`,
   })
 }
 
@@ -74,11 +84,12 @@ const PostCard = ({ post }: { handle: string; post: Clean<Post> }) => {
 }
 
 export default function Index() {
-  const { posts } = useLoaderData<typeof loader>()
+  const { posts, duration } = useLoaderData<typeof loader>()
   const handle = 'anonymous'
 
   return (
     <AppHeadingSection>
+      <DurationBar loader={duration} />
       <div className="flex">
         <h1 className="flex-1 text-2xl">{`@${handle}`}</h1>
         <Form method="POST">

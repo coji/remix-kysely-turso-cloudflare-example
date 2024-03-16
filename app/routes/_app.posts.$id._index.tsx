@@ -1,8 +1,10 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare'
+import type { LoaderFunctionArgs } from '@remix-run/cloudflare'
 import { Link, useLoaderData } from '@remix-run/react'
 import { ArrowLeftIcon, PencilIcon } from 'lucide-react'
 import { $path } from 'remix-routes'
+import { jsonWithSuccess } from 'remix-toast'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
+import { DurationBar } from '~/components/DurationBar'
 import { Button } from '~/components/ui'
 import { dayjs } from '~/libs/dayjs'
 import { createDb } from '~/services/db.server'
@@ -12,18 +14,26 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   if (!id) throw new Error('Not found')
 
   const db = createDb(context.cloudflare.env)
+  const start = Date.now()
   const post = await db
     .selectFrom('posts')
     .selectAll()
     .where('id', '==', id)
     .executeTakeFirst()
+  const duration = Date.now() - start
   if (!post) throw new Error('Not found')
 
-  return json({ id, post })
+  return jsonWithSuccess(
+    { id, post, duration },
+    {
+      message: 'Post loaded',
+      description: `SELECT: 1 record in ${duration}ms`,
+    },
+  )
 }
 
 export default function PostPage() {
-  const { id, post } = useLoaderData<typeof loader>()
+  const { id, post, duration } = useLoaderData<typeof loader>()
   return (
     <div>
       <nav className="flex px-4 py-2">
@@ -44,6 +54,7 @@ export default function PostPage() {
       </nav>
 
       <AppHeadingSection>
+        <DurationBar loader={duration} />
         <h1 className="text-2xl leading-loose tracking-wider">{post.title}</h1>
 
         <div className="flex items-center gap-1 text-slate-500">

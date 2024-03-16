@@ -59,6 +59,7 @@ export const action = async ({
 
   // 更新
   const db = createDb(context.cloudflare.env)
+  const start = Date.now()
   const post = await db
     .updateTable('posts')
     .where('id', '==', id)
@@ -69,10 +70,11 @@ export const action = async ({
     })
     .returning('title')
     .executeTakeFirstOrThrow()
+  const duration = Date.now() - start
 
   return redirectWithSuccess($path('/posts/:id', { id }), {
     message: '記事を更新しました',
-    description: post.title,
+    description: `UPDATE: ${duration}ms`,
   })
 }
 
