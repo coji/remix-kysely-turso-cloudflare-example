@@ -14,6 +14,7 @@ import {
 import { useEffect } from 'react'
 import { getToast } from 'remix-toast'
 import { toast } from 'sonner'
+import { AppFooter } from '~/components/AppFooter'
 import { Toaster } from '~/components/ui/sonner'
 import tailwindcss from './tailwind.css?url'
 
@@ -55,7 +56,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <Toaster />
-        {children}
+        <div className="grid min-h-screen grid-rows-[1fr_auto]">
+          <main>{children}</main>
+          <AppFooter />
+        </div>
         <ScrollRestoration />
         <Scripts />
       </body>

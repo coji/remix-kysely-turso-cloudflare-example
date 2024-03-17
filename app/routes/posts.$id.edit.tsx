@@ -16,6 +16,7 @@ import { $path } from 'remix-routes'
 import { redirectWithSuccess } from 'remix-toast'
 import { z } from 'zod'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
+import { DurationBar } from '~/components/DurationBar'
 import { Button, Input, Label, Textarea } from '~/components/ui'
 import { createDb } from '~/services/db.server'
 
@@ -33,14 +34,14 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   if (!id) throw json({ message: 'Not found', status: 404 })
 
   const db = createDb(context.cloudflare.env)
-
+  const start = Date.now()
   const post = await db
     .selectFrom('posts')
     .selectAll()
     .where('id', '==', id)
     .executeTakeFirst()
   if (!post) throw json({ message: 'Not found', status: 404 })
-  return { id, post }
+  return json({ id, post, duration: Date.now() - start })
 }
 
 export const action = async ({
@@ -79,7 +80,7 @@ export const action = async ({
 }
 
 export default function PostEditPage() {
-  const { id, post } = useLoaderData<typeof loader>()
+  const { id, post, duration } = useLoaderData<typeof loader>()
   const lastResult = useActionData<typeof action>()
 
   const [form, { title, content }] = useForm({
@@ -135,6 +136,7 @@ export default function PostEditPage() {
         {...getFormProps(form)}
       >
         <AppHeadingSection>
+          <DurationBar rows={1} loader={duration} />
           <fieldset>
             <Label htmlFor={title.id}>タイトル</Label>
             <Input {...getInputProps(title, { type: 'text' })} />

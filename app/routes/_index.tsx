@@ -1,11 +1,12 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
+import {
+  json,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
 } from '@remix-run/cloudflare'
 import { Form, Link, useLoaderData } from '@remix-run/react'
 import { PlusIcon } from 'lucide-react'
 import { $path } from 'remix-routes'
-import { jsonWithSuccess, redirectWithSuccess } from 'remix-toast'
+import { redirectWithSuccess } from 'remix-toast'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
 import { DurationBar } from '~/components/DurationBar'
 import { Button, Card, CardContent, CardHeader } from '~/components/ui'
@@ -22,13 +23,7 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
     .limit(100)
     .execute()
   const duration = Date.now() - start
-  return jsonWithSuccess(
-    { posts, duration },
-    {
-      message: 'Posts loaded',
-      description: `SELECT: ${posts.length} records in ${duration}ms`,
-    },
-  )
+  return json({ posts, duration })
 }
 
 export const action = async ({ context }: ActionFunctionArgs) => {
@@ -89,7 +84,7 @@ export default function Index() {
 
   return (
     <AppHeadingSection>
-      <DurationBar loader={duration} />
+      <DurationBar rows={posts.length} loader={duration} />
       <div className="flex">
         <h1 className="flex-1 text-2xl">{`@${handle}`}</h1>
         <Form method="POST">

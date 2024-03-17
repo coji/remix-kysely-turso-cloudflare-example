@@ -1,8 +1,7 @@
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare'
+import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare'
 import { Link, useLoaderData } from '@remix-run/react'
 import { ArrowLeftIcon, PencilIcon } from 'lucide-react'
 import { $path } from 'remix-routes'
-import { jsonWithSuccess } from 'remix-toast'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
 import { DurationBar } from '~/components/DurationBar'
 import { Button } from '~/components/ui'
@@ -23,13 +22,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const duration = Date.now() - start
   if (!post) throw new Error('Not found')
 
-  return jsonWithSuccess(
-    { id, post, duration },
-    {
-      message: 'Post loaded',
-      description: `SELECT: 1 record in ${duration}ms`,
-    },
-  )
+  return json({ id, post, duration })
 }
 
 export default function PostPage() {
@@ -54,7 +47,7 @@ export default function PostPage() {
       </nav>
 
       <AppHeadingSection>
-        <DurationBar loader={duration} />
+        <DurationBar rows={1} loader={duration} />
         <h1 className="text-2xl leading-loose tracking-wider">{post.title}</h1>
 
         <div className="flex items-center gap-1 text-slate-500">
