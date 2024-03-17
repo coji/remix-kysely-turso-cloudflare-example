@@ -4,14 +4,25 @@ import {
   type LoaderFunctionArgs,
 } from '@remix-run/cloudflare'
 import { Form, Link, useLoaderData } from '@remix-run/react'
-import { PlusIcon } from 'lucide-react'
+import { MoreVerticalIcon, PlusIcon } from 'lucide-react'
+import React from 'react'
 import { $path } from 'remix-routes'
 import { redirectWithSuccess } from 'remix-toast'
 import { AppHeadingSection } from '~/components/AppHeadingSection'
 import { DurationBar } from '~/components/DurationBar'
-import { Button, Card, CardContent, CardHeader } from '~/components/ui'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '~/components/ui'
 import { dayjs } from '~/libs/dayjs'
-import { createDb, type Clean, type Post } from '~/services/db.server'
+import { createDb, type PostItem } from '~/services/db.server'
+import { DeleteAlertDialog } from './posts.$id.delete'
 
 export const loader = async ({ context }: LoaderFunctionArgs) => {
   const db = createDb(context.cloudflare.env)
@@ -48,7 +59,13 @@ export const action = async ({ context }: ActionFunctionArgs) => {
   })
 }
 
-const PostCard = ({ post }: { handle: string; post: Clean<Post> }) => {
+const PostCard = ({ post }: { handle: string; post: PostItem }) => {
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false)
+
+  const handleClickDeleteMenu = () => {
+    setIsDeleteAlertOpen(true)
+  }
+
   return (
     <Card
       key={String(post.id)}
@@ -61,6 +78,28 @@ const PostCard = ({ post }: { handle: string; post: Clean<Post> }) => {
       >
         &nbsp;
       </Link>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger className="absolute right-0" asChild>
+          <Button size="sm" variant="ghost">
+            <MoreVerticalIcon className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            className="text-destructive"
+            onClick={() => handleClickDeleteMenu()}
+          >
+            削除
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DeleteAlertDialog
+        post={post}
+        open={isDeleteAlertOpen}
+        onCanceled={() => setIsDeleteAlertOpen(false)}
+      />
 
       <CardHeader>
         <div className="mx-auto flex h-24 w-20 flex-col gap-[2px] overflow-clip bg-white p-[8px] shadow-md">

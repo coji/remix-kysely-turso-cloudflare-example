@@ -61,7 +61,7 @@ export const action = async ({
   // 更新
   const db = createDb(context.cloudflare.env)
   const start = Date.now()
-  const post = await db
+  await db
     .updateTable('posts')
     .where('id', '==', id)
     .set({
